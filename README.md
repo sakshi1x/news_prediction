@@ -167,7 +167,16 @@ The creators of the various machine learning libraries used in this project
 
 
 ####### run the program #######
+Installation
+
+Ensure you have Python installed (>=3.8). Then, clone the repository and install the dependencies:
+
 pip install -r requirements.txt
+
+Running the Application
+
+Navigate to the src directory and start the Streamlit app:
 
 cd src
 streamlit run main.py
+
