@@ -1,3 +1,4 @@
+from venv import logger
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -17,7 +18,7 @@ from sklearn.metrics import mean_squared_error
 import xgboost as xgb
 import warnings
 from fredapi import Fred  # For economic data
-from test import  AdvancedStockAnalyzer, calculate_technical_indicators
+from src.advanced_stock import  AdvancedStockAnalyzer, calculate_technical_indicators
 
 warnings.filterwarnings('ignore')
 
@@ -29,6 +30,8 @@ FRED_API_KEY = '5a24dcab75c5f77ff277b689babdc8da'
 class StockAnalyzer:
     def __init__(self):
         self.vader = SentimentIntensityAnalyzer()
+        self.openrouter_key = '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' 
+        self.openrouter_url = "https://openrouter.ai/api/v1/chat/completions"
         self.scaler = StandardScaler()
         self.models = {
             'RandomForest': RandomForestRegressor(n_estimators=100),
@@ -36,6 +39,39 @@ class StockAnalyzer:
             'GradientBoosting': GradientBoostingRegressor(n_estimators=100)
         }
         self.fred = Fred(api_key=FRED_API_KEY)  # Initialize FRED API
+    def generate_insights(self, context):
+        """Generate insights using Llama3-70b via OpenRouter"""
+        headers = {
+            "Authorization": f"Bearer {self.openrouter_key}",
+            "HTTP-Referer": "https://your-domain.com",
+            "X-Title": "Stock Analyzer"
+        }
+        
+        prompt = f"""Analyze this stock context and provide detailed insights:
+        {context}
+        
+        Structure your response with:
+        1. Price Movement Reasons (Technical & Fundamental)
+        2. Key Support/Resistance Levels
+        3. Short-term Outlook (1-5 days)
+        4. Long-term Considerations
+        5. Investor Strategy Recommendations
+        """
+        
+        data = {
+            "model": "meta-llama/llama-3-70b-instruct",
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.6,
+            "max_tokens": 1200
+        }
+        
+        try:
+            response = requests.post(self.openrouter_url, headers=headers, json=data)
+            if response.status_code == 200:
+                return response.json()['choices'][0]['message']['content']
+            return "Error: Failed to get valid response from AI model"
+        except Exception as e:
+            return f"Connection Error: {str(e)}"
         
     
 
@@ -208,7 +244,7 @@ def main():
        
        
         hist_data1= calculate_technical_indicators(hist_data)
-        news_items1 = analyzer.get_news(symbol)
+        news_items1 = analyzer1.get_news(symbol)
       
 
         if hist_data.empty:
@@ -311,6 +347,9 @@ def main():
                 st.error(f"Forecast error: choose longer time")
         with tab7:
             st.subheader("AI-Powered Market Insights")
+            print( "symbol ", symbol)
+            print('hist data', hist_data1)
+            print(" ".join([n['text'] for n in news_items1]))
 
             context = f"""
             Stock Analysis Context:
@@ -319,11 +358,11 @@ def main():
             - 30-Day Volatility: {hist_data1['Close'].rolling(30).std()[-1]:.2f}
             - RSI: {hist_data1['RSI'][-1]:.2f}
             - MACD: {hist_data1['MACD'][-1]:.2f}
-            - Recent News Sentiment: {analyzer1.advanced_sentiment_analysis(" ".join([n['text'] for n in news_items1[:3]]))}
+            - Recent News Sentiment: {" ".join([n['text'] for n in news_items1])}
             - 50-Day MA: {hist_data1['Close'].rolling(50).mean()[-1]:.2f}
             - 200-Day MA: {hist_data1['Close'].rolling(200).mean()[-1]:.2f}
             """
-            
+            logger.info(context)
             with st.spinner("Generating AI Insights using Llama3-70b..."):
                 insights = analyzer1.generate_insights(context)
             st.markdown(f"### 📈 Llama3-70b Analysis")

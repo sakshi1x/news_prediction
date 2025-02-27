@@ -1,4 +1,5 @@
 
+from venv import logger
 import pandas as pd
 import numpy as np
 import yfinance as yf
@@ -18,7 +19,11 @@ import requests
 # Configure API keys (Replace with your actual keys)
 FRED_API_KEY = '5a24dcab75c5f77ff277b689babdc8da'
 OPENAI_API_KEY ='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'  # For GPT-4 insights
-
+from langchain_community.llms import Ollama
+ollama = Ollama(
+    base_url="http://jo3m4y06rnnwhaz.askbhunte.com",
+    model="llama3.2:latest"
+)
 
 class AdvancedStockAnalyzer:
     def __init__(self):
@@ -82,9 +87,11 @@ class AdvancedStockAnalyzer:
         }
         
         try:
-            response = requests.post(self.openrouter_url, headers=headers, json=data)
-            if response.status_code == 200:
-                return response.json()['choices'][0]['message']['content']
+            # response = requests.post(self.openrouter_url, headers=headers, json=data)
+            a =ollama.invoke(prompt)
+            if a !="":
+                print(a)
+                return a
             return "Error: Failed to get valid response from AI model"
         except Exception as e:
             return f"Connection Error: {str(e)}"

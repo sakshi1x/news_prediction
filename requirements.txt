@@ -1,0 +1,17 @@
+streamlit
+pandas
+numpy
+textblob
+yfinance
+beautifulsoup4
+requests
+feedparser
+plotly
+nltk
+scikit-learn
+xgboost
+fredapi
+
+prophet
+lime
+langchain_community

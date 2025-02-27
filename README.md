@@ -1,4 +1,4 @@
-# news_prediction
+# stock_prediction
 📈 Stock Analysis and Prediction Dashboard
 A comprehensive tool for stock market analysis combining traditional technical indicators, machine learning predictions, sentiment analysis, and AI-powered insights.
 Overview
@@ -164,3 +164,10 @@ Federal Reserve Economic Data (FRED) for economic indicators
 Yahoo Finance for stock data and news
 OpenRouter for LLM API access
 The creators of the various machine learning libraries used in this project
+
+
+####### run the program #######
+pip install -r requirements.txt
+
+cd src
+streamlit run main.py
